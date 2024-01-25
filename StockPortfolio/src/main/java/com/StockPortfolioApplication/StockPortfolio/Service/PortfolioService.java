@@ -3,7 +3,9 @@ package com.StockPortfolioApplication.StockPortfolio.Service;
 import com.StockPortfolioApplication.StockPortfolio.DTO.PortfolioDTO;
 import com.StockPortfolioApplication.StockPortfolio.Entity.Portfolio;
 import com.StockPortfolioApplication.StockPortfolio.Repository.PortfolioRepository;
+import org.hibernate.annotations.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,10 +15,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class PortfolioService {
+    private final PortfolioRepository portfolioRepository;
     @Autowired
-    private PortfolioRepository portfolioRepository;
+    public PortfolioService(PortfolioRepository portfolioRepository) {
+        this.portfolioRepository = portfolioRepository;
+    }
 
-    public List<PortfolioDTO> getAllPortfolio(int userId){
+    //@Cacheable(value="Portfolio",key="userId")
+    public List<Portfolio> getPortfolio(int userId){
         List<Portfolio> portfolioResponse=portfolioRepository.findAllByUserId(userId);
         List<Portfolio>finalResponsePortfolio=new ArrayList<>();
         for (Portfolio portfolio: portfolioResponse) {
@@ -24,10 +30,16 @@ public class PortfolioService {
                 finalResponsePortfolio.add(portfolio);
             }
         }
-        return PortDtoToPort(finalResponsePortfolio);
-        //return responsePortfolio;
+        return finalResponsePortfolio;
+    }
+
+
+    public List<PortfolioDTO> getAllPortfolio(int userId){
+       List<Portfolio>finalResponsePortfolio = getPortfolio(userId);
+       return PortDtoToPort(finalResponsePortfolio);
 
     }
+
     private List<PortfolioDTO> PortDtoToPort(List<Portfolio> portfolios){
         List<PortfolioDTO>portfolioDTOS=new ArrayList<>();
         for(Portfolio portfolio:portfolios)

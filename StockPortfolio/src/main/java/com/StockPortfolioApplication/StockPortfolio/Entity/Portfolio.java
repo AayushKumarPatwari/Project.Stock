@@ -2,6 +2,8 @@ package com.StockPortfolioApplication.StockPortfolio.Entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.function.Supplier;
+
 @Data
 @Getter
 @Setter
@@ -10,7 +12,7 @@ import lombok.*;
 @IdClass(PortfolioCompositeKey.class)
 
 @Entity
-public class Portfolio {
+public class Portfolio{
     @Id
     private int userId;
 

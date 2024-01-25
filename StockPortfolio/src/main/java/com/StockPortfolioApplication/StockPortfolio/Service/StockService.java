@@ -7,6 +7,8 @@ import com.StockPortfolioApplication.StockPortfolio.Entity.Stock;
 import com.StockPortfolioApplication.StockPortfolio.Repository.StockRepository;
 import com.StockPortfolioApplication.StockPortfolio.ResponseStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -68,6 +70,7 @@ public class StockService {
     }
 
 
+    //@CachePut(value = "stockCache", key = "#result.body.ISIN")
     public ResponseEntity<ResponseStatus> UpdateStock(@RequestParam("file") MultipartFile file) throws IOException, ParseException {
         BufferedReader inputReader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
         return ParseAndUpdateStock(inputReader);
@@ -84,6 +87,7 @@ public class StockService {
         return stockDTO;
     }
 
+    //@Cacheable(value="StockCache",key="#stockId")
     public Optional<StockDTO> findById(String stockId) {
         return stockRepository.findById(stockId).map(this::StockDtoToStock);
 

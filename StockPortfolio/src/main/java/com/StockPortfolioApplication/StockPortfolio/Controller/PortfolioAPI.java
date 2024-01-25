@@ -8,6 +8,8 @@ import com.StockPortfolioApplication.StockPortfolio.ResponseStatus;
 import com.StockPortfolioApplication.StockPortfolio.Service.PortfolioService;
 import com.StockPortfolioApplication.StockPortfolio.Service.StockService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +27,7 @@ public class PortfolioAPI {
     private PortfolioService portfolioService;
 
     @GetMapping("/portfolio/v1/{userId}")
+   // @Cacheable(value = "Portfolio" ,key = "#userId")
     public List<PortfolioDTO> getPortfolioDetails(@PathVariable("userId") int userId){
 //        try{
             return portfolioService.getAllPortfolio(userId);

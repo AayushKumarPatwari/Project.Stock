@@ -10,6 +10,7 @@ import com.StockPortfolioApplication.StockPortfolio.Repository.TradeRepository;
 import com.StockPortfolioApplication.StockPortfolio.ResponseStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -23,9 +24,10 @@ public class TradeService {
     @Autowired PortfolioRepository portfolioRepository;
     @Autowired TradeRepository tradeRepository;
     @Autowired StockRepository stockRepository;
+
+
     public ResponseEntity<ResponseStatus> GetTradeDetail(Trade trade) {
 
-       // log.info("Trade Quantity: {}",trade.getQuantity());
         Trade newTrade = new Trade(trade.getUserId(), trade.getStockId(), trade.getQuantity(), trade.getTradeType());
         if(trade.getQuantity()<=0){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseStatus("Failed","Enter Valid Quantity"));
@@ -45,9 +47,7 @@ public class TradeService {
             }
             Portfolio portfolio = portfolioRepository.findByUserIdAndStockId(trade.getUserId(),trade.getStockId());
 
-            //check if TrdaeType is sell
             if(trade.getTradeType().equals("Sell")){
-                //if stock is already purchased
                 if(portfolio==null){
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseStatus("Failed","Stock can not be sell"));
                 }
@@ -56,11 +56,9 @@ public class TradeService {
                 }
                 try{
                     int remainQuantity = portfolio.getTotalQuantity()- trade.getQuantity();
-                   // log.info("Portfolio Total Quantity: {}",portfolio.getTotalQuantity());
                     portfolio.setTotalQuantity(remainQuantity);
                     double totalSellPrice = portfolio.getTotalSellPrice()+(stock.getCurrentPrice()* trade.getQuantity());
                     portfolio.setTotalSellPrice(totalSellPrice);
-                   // log.info("Portfolio Total Quantity: {}",portfolio.getTotalQuantity());
                     tradeRepository.save(newTrade);
                     return ResponseEntity.status(HttpStatus.OK).body(new ResponseStatus("Success","Stock "+ trade.getTradeType()+" successfully"));
                 }
@@ -68,17 +66,13 @@ public class TradeService {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseStatus("Selling Stock Failed",e.getMessage()));
                 }
             }else{
-//                TradeCompositeKey tradeCompositeKey= new TradeCompositeKey(trade.getUserId(),trade.getStockId());
-//                Optional<Trade> existrade=tradeRepository.findById(tradeCompositeKey);
                 if(portfolio!=null){
                     try{
                         int remainQuantity = portfolio.getTotalQuantity()+trade.getQuantity();
-                        //log.info("Portfolio Total Quantity: {}",portfolio.getTotalQuantity());
                         portfolio.setTotalQuantity(remainQuantity);
                         double totalCostPrice = portfolio.getTotalCostPrice()+(stock.getCurrentPrice()*trade.getQuantity());
                         portfolio.setTotalCostPrice(totalCostPrice);
                         tradeRepository.save(newTrade);
-                       // log.info("Portfolio Total Quantity: {}",portfolio.getTotalQuantity());
                         return ResponseEntity.status(HttpStatus.OK).body(new ResponseStatus("Success","Stock "+ trade.getTradeType()+" successfully"));
                     }
                     catch (Exception e){
@@ -87,11 +81,9 @@ public class TradeService {
                 }else{
                     try{
                         tradeRepository.save(newTrade);
-
                         double totalCost= trade.getQuantity()*stock.getCurrentPrice();
                         Portfolio newportfolio= new Portfolio(trade.getUserId(), trade.getStockId(), stock.getStockName(), stock.getOpenPrice(), stock.getCurrentPrice(), trade.getQuantity(), totalCost, 0.0);
                         portfolioRepository.save(newportfolio);
-                        //log.info("Portfolio Total Quantity: {}",newportfolio.getTotalQuantity());
                         return ResponseEntity.status(HttpStatus.OK).body(new ResponseStatus("Success","Stock "+ trade.getTradeType()+" successfully"));
                     }
                     catch (Exception e){
